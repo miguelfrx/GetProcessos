@@ -28,131 +28,82 @@
     <div class="bg-white shadow-lg rounded-lg p-6 mb-6 border border-gray-200">
         <h1 class="text-3xl font-bold mb-6 text-gray-800">Detalhes do Utilizador</h1>
 
-        <!-- Grid de Informações -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-
-            <!-- Nome -->
-            <div>
-                <h2 class="text-gray-500 font-semibold">Nome</h2>
-                <p class="text-gray-800 text-lg font-medium">{{ $cadastro->nome }}</p>
+        {{-- Mensagem de sucesso --}}
+        @if(session('success'))
+            <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">
+                {{ session('success') }}
             </div>
+        @endif
 
-            <!-- Email -->
-            <div>
-                <h2 class="text-gray-500 font-semibold">Email</h2>
-                <p class="text-gray-800 text-lg font-medium">{{ $cadastro->email }}</p>
-            </div>
-
-            <!-- Contacto -->
-            <div>
-                <h2 class="text-gray-500 font-semibold">Contacto</h2>
-                <p class="text-gray-800 text-lg font-medium">{{ $cadastro->contacto ?? '-' }}</p>
-            </div>
-
-            <!-- Estado Atual -->
-            <div>
-                <h2 class="text-gray-500 font-semibold">Estado Atual</h2>
-                <span class="px-3 py-1 rounded-full text-white font-semibold 
-                    @if($cadastro->estado=='verde') bg-green-500 
-                    @elseif($cadastro->estado=='amarelo') bg-yellow-500 
-                    @elseif($cadastro->estado=='vermelho') bg-red-500 
-                    @elseif($cadastro->estado=='a tratar') bg-blue-500 
-                    @else bg-gray-400 @endif">
-                    {{ $cadastro->estado }}
-                </span>
-            </div>
-
-            <!-- Data de Entrada -->
-            <div>
-                <h2 class="text-gray-500 font-semibold">Data de Entrada</h2>
-                <p class="text-gray-800 text-lg font-medium">{{ $cadastro->created_at ?? '-' }}</p>
-            </div>
-
-            <!-- Anexos -->
-            <div>
-                <h2 class="text-gray-500 font-semibold">Anexos</h2>
-                @if($cadastro->anexos)
-                    <ul class="list-disc list-inside text-blue-600">
-                        @foreach(explode(',', $cadastro->anexos) as $anexo)
-                            <li><a href="{{ asset('storage/' . trim($anexo)) }}" target="_blank" class="hover:underline">{{ trim($anexo) }}</a></li>
-                        @endforeach
-                    </ul>
-                @else
-                    <p class="text-gray-800">-</p>
-                @endif
-            </div>
-        </div>
-    </div>
-
-    <!-- Tabela de Estado Atual -->
-    <div class="bg-white shadow-lg rounded-lg p-6 mb-6 border border-gray-200">
-        <h2 class="text-2xl font-bold mb-4 text-gray-800">Tabela de Estado Atual</h2>
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-gray-100">
-                    <th class="px-4 py-2 border">Estado</th>
-                    <th class="px-4 py-2 border">Atualizado em</th>
-                    <th class="px-4 py-2 border">Responsável</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-2 border">
-                        <span class="px-2 py-1 rounded-full text-white font-semibold
-                        @if($cadastro->estado=='verde') bg-green-500
-                        @elseif($cadastro->estado=='amarelo') bg-yellow-500
-                        @elseif($cadastro->estado=='vermelho') bg-red-500
-                        @elseif($cadastro->estado=='a tratar') bg-blue-500
-                        @else bg-gray-400 @endif">
-                        {{ $cadastro->estado }}</span>
-                    </td>
-                    <td class="px-4 py-2 border">{{ $cadastro->updated_at ?? '-' }}</td>
-                    <td class="px-4 py-2 border">{{ $cadastro->responsavel ?? '-' }}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Histórico de Estados -->
-    <div class="bg-white shadow-lg rounded-lg p-6 mb-6 border border-gray-200">
-        <h2 class="text-2xl font-bold mb-4 text-gray-800">Histórico de Estados</h2>
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-gray-100">
-                    <th class="px-4 py-2 border">Estado</th>
-                    <th class="px-4 py-2 border">Data</th>
-                    <th class="px-4 py-2 border">Responsável</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if(isset($historicoEstados) && count($historicoEstados) > 0)
-                    @foreach($historicoEstados as $h)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-2 border">
-                                <span class="px-2 py-1 rounded-full text-white font-semibold
-                                @if($h->estado=='verde') bg-green-500
-                                @elseif($h->estado=='amarelo') bg-yellow-500
-                                @elseif($h->estado=='vermelho') bg-red-500
-                                @elseif($h->estado=='a tratar') bg-blue-500
-                                @else bg-gray-400 @endif">
-                                {{ $h->estado }}</span>
-                            </td>
-                            <td class="px-4 py-2 border">{{ $h->created_at }}</td>
-                            <td class="px-4 py-2 border">{{ $h->responsavel }}</td>
-                        </tr>
+        {{-- Erros de validação --}}
+        @if ($errors->any())
+            <div class="mb-4 p-3 bg-red-100 text-red-800 rounded">
+                <ul class="list-disc list-inside">
+                    @foreach ($errors->all() as $erro)
+                        <li>{{ $erro }}</li>
                     @endforeach
-                @else
-                    <tr>
-                        <td colspan="3" class="px-4 py-2 text-center text-gray-500">Sem histórico</td>
-                    </tr>
-                @endif
-            </tbody>
-        </table>
-    </div>
+                </ul>
+            </div>
+        @endif
 
-    <a href="{{ route('todos.cadastros') }}" class="inline-block px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-        ← Voltar
-    </a>
+        <!-- Formulário de edição -->
+        <form action="{{ route('atualizar.cadastro', $cadastro->id) }}" method="POST">
+            @csrf
+            @method('PUT')
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Nome -->
+                <div>
+                    <label class="block text-gray-500 font-semibold mb-1">Nome</label>
+                    <input type="text" name="nome" value="{{ $cadastro->nome }}"
+                           class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300" required>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="block text-gray-500 font-semibold mb-1">Email</label>
+                    <input type="email" name="email" value="{{ $cadastro->email }}"
+                           class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300" required>
+                </div>
+
+                <!-- Contacto -->
+                <div>
+                    <label class="block text-gray-500 font-semibold mb-1">Contacto</label>
+                    <input type="text" name="contacto" value="{{ $cadastro->contacto }}"
+                           class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300">
+                </div>
+
+                <!-- Responsável -->
+                <div>
+                    <label class="block text-gray-500 font-semibold mb-1">Responsável</label>
+                    <input type="text" name="responsavel" value="{{ $cadastro->responsavel }}"
+                           class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300">
+                </div>
+
+                <!-- Estado -->
+                <div>
+                    <label class="block text-gray-500 font-semibold mb-1">Estado</label>
+                    <select name="estado" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300" required>
+                        <option value="verde" {{ $cadastro->estado=='verde' ? 'selected' : '' }}>Verde</option>
+                        <option value="amarelo" {{ $cadastro->estado=='amarelo' ? 'selected' : '' }}>Amarelo</option>
+                        <option value="vermelho" {{ $cadastro->estado=='vermelho' ? 'selected' : '' }}>Vermelho</option>
+                        <option value="a tratar" {{ $cadastro->estado=='a tratar' ? 'selected' : '' }}>A tratar</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="flex justify-end gap-3 mt-6">
+                <a href="{{ route('todos.cadastros') }}" class="px-4 py-2 rounded bg-gray-300 text-gray-800 hover:bg-gray-400">
+                    Cancelar
+                </a>
+
+                <button type="submit" class="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700">
+                    Atualizar Cadastro
+                </button>
+            </div>
+        </form>
+    </div>
 
 </div>
 

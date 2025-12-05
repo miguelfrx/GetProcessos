@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MainController;
 use App\Http\Controllers\CadastroController;
+use App\Http\Controllers\ProcessoController;
+use Nette\Schema\Processor;
 
 // Login
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -21,7 +23,7 @@ Route::get('/paginamain', [MainController::class, 'index'])
     ->middleware('auth')
     ->name('paginamain');
 
-// Subpáginas da sidebar
+// Subpáginas da sidebar Processos
 Route::get('/todos-cadastros', [MainController::class, 'todosCadastros'])
     ->middleware('auth')
     ->name('todos.cadastros');
@@ -39,3 +41,18 @@ Route::get('/', function () {
 Route::get('/cadastros/{id}', [CadastroController::class, 'show'])
     ->middleware('auth')
     ->name('cadastros.show');
+
+// Formulário para criar novo processo
+Route::get('/criar-processo', [ProcessoController::class, 'create'])
+    ->middleware('auth')
+    ->name('criar.processo');
+
+// Guardar dados do novo processo
+Route::post('/guardar-processo', [ProcessoController::class, 'store'])
+    ->middleware('auth')
+    ->name('guardar.processo');
+
+    // Atualizar cadastro
+Route::put('atualizar-processo', [ProcessoController::class, 'update'])
+    ->middleware('auth')
+    ->name('atualizar.cadastro');

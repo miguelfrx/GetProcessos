@@ -60,6 +60,12 @@
                                 </span>
                             @endif
                         </li>
+                        <li class="flex justify-between items-center relative">
+                            <a href="{{ route('criar.processo') }}" 
+                                class="block text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded px-2 py-1">
+                                    Criar Novo Processo
+                            </a>
+                            </li>  
                     </ul>
                 </li>
 

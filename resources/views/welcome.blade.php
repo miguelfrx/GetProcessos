@@ -14,31 +14,28 @@
         <img src="https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1950&q=80" 
              alt="Background" 
              class="w-full h-full object-cover">
-        <!-- Overlay para contraste -->
         <div class="absolute inset-0 bg-black bg-opacity-50"></div>
     </div>
 
     <!-- Conteúdo central -->
-    <div class="relative z-10 flex items-center justify-center h-screen">
-        <div class="text-center bg-white bg-opacity-90 backdrop-blur-md shadow-2xl p-10 rounded-2xl max-w-md">
-            
-            <h1 class="text-4xl font-bold text-gray-800 mb-4">
-                Gestão Processos
-            </h1>
+    <div class="relative z-10 flex flex-col items-center justify-center h-screen space-y-6">
 
-            <p class="text-gray-600 mb-6">
-                Clique no botão abaixo para aceder ao login.
-            </p>
+        <!-- Título -->
+        <h1 class="text-5xl font-bold text-white drop-shadow-lg">
+            Gestão Processos
+        </h1>
 
-            <a href="/login"
-               class="inline-block text-white bg-blue-600 hover:bg-blue-700 font-semibold px-6 py-3 rounded-lg shadow-lg transition transform hover:scale-105">
-               Ir para Login
-            </a>
-        </div>
+        <!-- Logotipo maior e responsivo -->
+        <img src="img/esposende-ambiente-alt-1920x295.png" alt="Logotipo" class="w-96 h-96 md:w-[500px] md:h-[500px] object-contain">
+
+        <!-- Botão de login -->
+        <a href="/login"
+           class="mt-4 inline-block text-white bg-blue-600 hover:bg-blue-700 font-semibold px-8 py-3 rounded-lg shadow-lg transition transform hover:scale-105">
+           Ir para Login
+        </a>
     </div>
 
     @include('partials.footer')
 
 </body>
 </html>
-
