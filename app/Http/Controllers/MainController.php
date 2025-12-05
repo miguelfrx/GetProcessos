@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -6,32 +7,33 @@ use Illuminate\Support\Facades\DB;
 
 class MainController extends Controller
 {
-    // Página principal
+    // Página principal com os contadores
     public function index()
     {
-        // Contadores para os badges
         $todosCadastrosCount = DB::table('TodosCadastros')->count();
+
         $tratarCadastrosCount = DB::table('TodosCadastros')
-            ->where('Estado', 'a tratar')
+            ->where('Estado', 'amarelo') // agora é amarelo, não 'a tratar'
             ->count();
 
         return view('paginamain', compact('todosCadastrosCount', 'tratarCadastrosCount'));
     }
 
-    // Todos os cadastros (com filtro e pesquisa)
+
+    // Página "Todos os Cadastros"
     public function todosCadastros(Request $request)
     {
         $query = DB::table('TodosCadastros');
 
-        // Filtro por estado, se enviado
-        if ($request->has('estado') && in_array($request->estado, ['verde','amarelo','vermelho','a tratar'])) {
+        // Filtro por estado
+        if ($request->filled('estado') && in_array($request->estado, ['verde','amarelo','vermelho','a tratar'])) {
             $query->where('Estado', $request->estado);
         }
 
-        // Filtro de pesquisa (nome ou email)
-        if ($request->has('search') && !empty($request->search)) {
+        // Pesquisa por nome ou email
+        if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('nome', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
             });
@@ -39,17 +41,19 @@ class MainController extends Controller
 
         $cadastros = $query->get();
 
-        // Retorna a view correta (confere que a pasta e arquivo existam)
-        return view('cadastroS.cadastros', compact('cadastros'));
-    }
-
-    // Cadastros "A Tratar"
-    public function tratarCadastros()
-    {
-        $cadastros = DB::table('TodosCadastros')
-            ->where('Estado', 'a tratar')
-            ->get();
-
         return view('cadastros.cadastros', compact('cadastros'));
     }
+
+    // Página "A Tratar"
+        public function tratarCadastros()
+    {
+        $cadastros = DB::table('TodosCadastros')
+            ->where('Estado', 'amarelo') // filtra apenas amarelo
+            ->get();
+
+        // contagem para o badge
+        $tratarCadastrosCount = $cadastros->count();
+
+        return view('cadastros.cadastros', compact('cadastros', 'tratarCadastrosCount'));
+}
 }

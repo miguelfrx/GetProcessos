@@ -17,6 +17,10 @@
         @yield('content')
     </main>
 
+    <!-- sidebar -->
+    @include('partials.sidebar')
+
+
     <!-- Footer -->
     @include('partials.footer')
 
