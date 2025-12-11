@@ -34,10 +34,11 @@
 
                 <select name="estado" class="px-3 py-2 border border-gray-300 rounded">
                     <option value="">Todos os estados</option>
-                    <option value="verde" {{ request('estado')=='verde' ? 'selected' : '' }}>Verde</option>
-                    <option value="amarelo" {{ request('estado')=='amarelo' ? 'selected' : '' }}>Amarelo</option>
-                    <option value="vermelho" {{ request('estado')=='vermelho' ? 'selected' : '' }}>Vermelho</option>
-                    <option value="a tratar" {{ request('estado')=='a tratar' ? 'selected' : '' }}>A Tratar</option>
+                    <option value="Submetido" {{ request('estado')=='Submetido' ? 'selected' : '' }}>Submetido</option>
+                    <option value="Para Correção" {{ request('estado')=='Para Correção' ? 'selected' : '' }}>Para Correção</option>
+                    <option value="Aguardar Pagamento" {{ request('estado')=='Aguardar Pagamento' ? 'selected' : '' }}>Aguardar Pagamento</option>
+                    <option value="Pagamento Efetuado" {{ request('estado')=='Pagamento Efetuado' ? 'selected' : '' }}>Pagamento Efetuado</option>
+                    <option value="Concluído" {{ request('estado')=='Concluído' ? 'selected' : '' }}>Concluído</option>
                 </select>
 
                 <button type="submit" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
@@ -71,13 +72,19 @@
                     <td class="px-4 py-2">{{ $cadastro->email }}</td>
 
                     <td class="px-4 py-2">
-                        <span class="px-2 py-1 rounded text-white font-semibold 
-                            @if($cadastro->estado=='verde') bg-green-500 
-                            @elseif($cadastro->estado=='amarelo') bg-yellow-500 
-                            @elseif($cadastro->estado=='vermelho') bg-red-500 
-                            @elseif($cadastro->estado=='a tratar') bg-blue-500 
-                            @else bg-gray-400 @endif">
-                            {{ $cadastro->estado }}
+                        @php
+                            // Mapa de estados para cores específicas
+                            $estadoClasses = [
+                                'Submetido' => 'bg-blue-500 text-white text-xs font-medium px-1.5 py-0.5 rounded',
+                                'Para Correção' => 'bg-yellow-400 text-black text-xs font-medium px-1.5 py-0.5 rounded',
+                                'Aguardar Pagamento' => 'bg-pink-500 text-white text-xs font-medium px-1.5 py-0.5 rounded',
+                                'Pagamento Efectuado' => 'bg-green-500 text-white text-xs font-medium px-1.5 py-0.5 rounded',
+                                'Concluído' => 'bg-gray-700 text-white text-xs font-medium px-1.5 py-0.5 rounded',
+                            ];
+                            $classe = $estadoClasses[$cadastro->estado->descricao] ?? 'bg-gray-400 text-white text-xs font-medium px-1.5 py-0.5 rounded';
+                        @endphp
+                        <span class="{{ $classe }}">
+                            {{ $cadastro->estado->descricao }}
                         </span>
                     </td>
 

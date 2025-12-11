@@ -1,111 +1,305 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalhes do Utilizador</title>
-    <link rel="icon" type="image/png" href="/img/favicon.png">
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
+@extends('layouts.app')
 
-@include('partials.header')
+@section('content')
 
-<body class="bg-gray-100 font-sans">
-    <div class="fixed inset-0 -z-10">
-        <img 
-            src="https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1950&q=80"
-            class="w-full h-full object-cover"
-            alt="Background"
-        >
-        <div class="absolute inset-0 bg-black bg-opacity-40"></div>
-    </div>
+{{-- Fundo igual ao da página principal --}}
+<div class="fixed inset-0 -z-10">
+    <img 
+        src="https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1950&q=80"
+        class="w-full h-full object-cover"
+        alt="Background"
+    >
+    <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+</div>
 
 @include('partials.sidebar')
+@include('partials.header')
 
 <div class="p-4 sm:ml-64 mt-20">
 
-    <!-- Card Principal -->
-    <div class="bg-white shadow-lg rounded-lg p-6 mb-6 border border-gray-200">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800">Detalhes do Utilizador</h1>
+    <div class="p-6 bg-white/90 backdrop-blur-md rounded-xl shadow-xl border border-gray-200">
 
-        {{-- Mensagem de sucesso --}}
-        @if(session('success'))
-            <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">
-                {{ session('success') }}
-            </div>
-        @endif
+        {{-- HEADER --}}
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 tracking-tight">
+                Detalhes do Cadastro
+            </h2>
 
-        {{-- Erros de validação --}}
-        @if ($errors->any())
-            <div class="mb-4 p-3 bg-red-100 text-red-800 rounded">
-                <ul class="list-disc list-inside">
-                    @foreach ($errors->all() as $erro)
-                        <li>{{ $erro }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <!-- Formulário de edição -->
-        <form action="{{ route('atualizar.cadastro', $cadastro->id) }}" method="POST">
-            @csrf
-            @method('PUT')
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <!-- Nome -->
-                <div>
-                    <label class="block text-gray-500 font-semibold mb-1">Nome</label>
-                    <input type="text" name="nome" value="{{ $cadastro->nome }}"
-                           class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300" required>
-                </div>
-
-                <!-- Email -->
-                <div>
-                    <label class="block text-gray-500 font-semibold mb-1">Email</label>
-                    <input type="email" name="email" value="{{ $cadastro->email }}"
-                           class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300" required>
-                </div>
-
-                <!-- Contacto -->
-                <div>
-                    <label class="block text-gray-500 font-semibold mb-1">Contacto</label>
-                    <input type="text" name="contacto" value="{{ $cadastro->contacto }}"
-                           class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300">
-                </div>
-
-                <!-- Responsável -->
-                <div>
-                    <label class="block text-gray-500 font-semibold mb-1">Responsável</label>
-                    <input type="text" name="responsavel" value="{{ $cadastro->responsavel }}"
-                           class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300">
-                </div>
-
-                <!-- Estado -->
-                <div>
-                    <label class="block text-gray-500 font-semibold mb-1">Estado</label>
-                    <select name="estado" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300" required>
-                        <option value="verde" {{ $cadastro->estado=='verde' ? 'selected' : '' }}>Verde</option>
-                        <option value="amarelo" {{ $cadastro->estado=='amarelo' ? 'selected' : '' }}>Amarelo</option>
-                        <option value="vermelho" {{ $cadastro->estado=='vermelho' ? 'selected' : '' }}>Vermelho</option>
-                        <option value="a tratar" {{ $cadastro->estado=='a tratar' ? 'selected' : '' }}>A tratar</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Botões -->
-            <div class="flex justify-end gap-3 mt-6">
-                <a href="{{ route('todos.cadastros') }}" class="px-4 py-2 rounded bg-gray-300 text-gray-800 hover:bg-gray-400">
-                    Cancelar
-                </a>
-
-                <button type="submit" class="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700">
-                    Atualizar Cadastro
+            <div class="flex gap-2">
+                @if($cadastro->estado->descricao == 'Submetido')
+                @if($estadoAguarda)
+                <button 
+                    data-modal-target="aguarda-modal" 
+                    data-modal-toggle="aguarda-modal" 
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+                >
+                    Aguarda Pagamento
                 </button>
+                @endif
+
+                @if($estadoCorrecao)
+                <button 
+                    data-modal-target="correcao-modal" 
+                    data-modal-toggle="correcao-modal" 
+                    class="px-4 py-2 bg-yellow-500 text-white rounded-lg shadow hover:bg-yellow-600 transition"
+                >
+                    Para Correção
+                </button>
+                @endif
+                @endif
+            
+            </div>
+        </div>
+
+
+       {{-- Estado Atual com Cores --}}
+        @php
+            $cores = [
+                'Submetido' => 'azul',
+                'Para Correção' => 'amarelo',
+                'Aguardar Pagamento' => 'rosa',
+                'Pagamento Efectuado' => 'verde'
+            ];
+
+            $estadoDescricao = $cadastro->estado->descricao ?? 'Desconhecido';
+            $cor = $cores[$estadoDescricao] ?? 'cinzento';
+        @endphp
+
+<style>
+    .estado-azul {
+        background-color: #3498db;
+        color: white;
+    }
+    .estado-amarelo {
+        background-color: #f1c40f;
+        color: black;
+    }
+    .estado-rosa {
+        background-color: #ff66b2;
+        color: white;
+    }
+    .estado-verde {
+        background-color: #2ecc71;
+        color: white;
+    }
+    .estado-cinzento {
+        background-color: #bdc3c7;
+        color: black;
+    }
+</style>
+
+<div class="mb-4 flex items-center gap-2">
+    <span class="font-semibold">Estado atual:</span>
+    <span class="badge 
+                 estado-{{ strtolower(str_replace(' ', '', $cor)) }}" 
+          style="padding:6px 12px; font-size:14px; border-radius:6px;">
+        {{ $estadoDescricao }}
+    </span>
+</div>
+
+
+
+
+        {{-- ABAS --}}
+        <div class="border-b mb-5">
+            <ul class="flex flex-wrap gap-2 text-sm font-medium">
+
+                <li>
+                    <button class="tab-link px-4 py-2 rounded-t-lg border-b-2 border-blue-600 text-blue-600 font-semibold"
+                            data-tab="tecnicos">
+                        Dados Técnicos
+                    </button>
+                </li>
+
+                <li>
+                    <button class="tab-link px-4 py-2 rounded-t-lg border-b-2 border-transparent hover:text-blue-700 hover:border-blue-300 transition"
+                            data-tab="faturacao">
+                        Dados Faturação
+                    </button>
+                </li>
+
+                <li>
+                    <button class="tab-link px-4 py-2 rounded-t-lg border-b-2 border-transparent hover:text-blue-700 hover:border-blue-300 transition"
+                            data-tab="anexos">
+                        Anexos
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+
+        {{-- CONTENT --}}
+        <div>
+
+           {{-- DADOS TÉCNICOS --}}
+            <div class="tab-content" id="tecnicos">
+                <table class="w-full border border-gray-200 rounded-lg overflow-hidden text-sm">
+                    <tbody>
+                        <tr class="bg-gray-50 border-b">
+                            <th class="px-4 py-2 text-left text-gray-600 w-1/3">Nome</th>
+                            <td class="px-4 py-2">{{ $cadastro->nome }}</td>
+                        </tr>
+                        <tr class="bg-white border-b">
+                            <th class="px-4 py-2 text-left text-gray-600">Email</th>
+                            <td class="px-4 py-2">{{ $cadastro->email }}</td>
+                        </tr>
+                        <tr class="bg-gray-50 border-b">
+                            <th class="px-4 py-2 text-left text-gray-600">Contato</th>
+                            <td class="px-4 py-2">{{ $cadastro->contato }}</td>
+                        </tr>
+                        <tr class="bg-white border-b">
+                            <th class="px-4 py-2 text-left text-gray-600">Estado Atual</th>
+                            <td class="px-4 py-2">
+                                <span class="px-2 py-1 rounded-full text-white
+                                    @if($estadoDescricao == 'Submetido') bg-blue-600
+                                    @elseif($estadoDescricao == 'Para Correção') bg-yellow-400 text-black
+                                    @elseif($estadoDescricao == 'Aguarda pagamento') bg-pink-500
+                                    @elseif($estadoDescricao == 'Pagamento efectuado') bg-green-600
+                                    @else bg-gray-400 text-black @endif">
+                                    {{ $estadoDescricao }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="bg-gray-50 border-b">
+                            <th class="px-4 py-2 text-left text-gray-600">Nº Cadastro</th>
+                            <td class="px-4 py-2">{{ $cadastro->numcadastro }}</td>
+                        </tr>
+                        <tr class="bg-white">
+                            <th class="px-4 py-2 text-left text-gray-600">Data Entrada</th>
+                            <td class="px-4 py-2">{{ $cadastro->data_entrada }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- DADOS DE FATURAÇÃO --}}
+            <div class="tab-content hidden" id="faturacao">
+                <table class="w-full border border-gray-200 rounded-lg overflow-hidden text-sm">
+                    <tbody>
+                        <tr class="bg-gray-50 border-b">
+                            <th class="px-4 py-2 text-left text-gray-600 w-1/3">Nome Faturação</th>
+                            <td class="px-4 py-2">{{ $cadastro->nomeFaturacao ?? '-' }}</td>
+                        </tr>
+                        <tr class="bg-white border-b">
+                            <th class="px-4 py-2 text-left text-gray-600">NIF</th>
+                            <td class="px-4 py-2">{{ $cadastro->nifFaturacao ?? '-' }}</td>
+                        </tr>
+                        <tr class="bg-gray-50 border-b">
+                            <th class="px-4 py-2 text-left text-gray-600">Morada</th>
+                            <td class="px-4 py-2">{{ $cadastro->moradaFaturacao ?? '-' }}</td>
+                        </tr>
+                        <tr class="bg-white border-b">
+                            <th class="px-4 py-2 text-left text-gray-600">Código Postal</th>
+                            <td class="px-4 py-2">{{ $cadastro->codigoPostalFaturacao ?? '-' }}</td>
+                        </tr>
+                        <tr class="bg-gray-50">
+                            <th class="px-4 py-2 text-left text-gray-600">Localidade</th>
+                            <td class="px-4 py-2">{{ $cadastro->localidadeFaturacao ?? '-' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+            {{-- ANEXOS --}}
+            <div class="tab-content hidden" id="anexos">
+                <table class="w-full text-left border shadow rounded-lg overflow-hidden">
+                    <thead class="bg-gray-100 text-gray-700">
+                        <tr>
+                            <th class="px-3 py-2">Ficheiro</th>
+                            <th class="px-3 py-2">Tipo</th>
+                            <th class="px-3 py-2">Data Entrada</th>
+                            <th class="px-3 py-2">Download</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($cadastro->anexos as $anexo)
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-3 py-2">{{ $anexo->ficheiro }}</td>
+                            <td class="px-3 py-2">{{ $anexo->tipo }}</td>
+                            <td class="px-3 py-2">{{ $anexo->data_entrada }}</td>
+                            <td class="px-3 py-2">
+                                <a href="{{ route('download.anexo', $anexo->id) }}" class="text-blue-600 font-semibold hover:underline">
+                                    Download
+                                </a>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="4" class="text-center py-3 text-gray-500">Nenhum anexo disponível</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+{{-- MODAL --}}
+
+@if($estadoAguarda)
+<div id="aguarda-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div class="bg-white p-6 rounded-xl shadow-xl w-96 animate-fadeIn">
+        <h3 class="mb-4 font-semibold text-lg text-gray-800">Confirmar Alteração</h3>
+        <p class="mb-4 text-gray-600">Alterar o estado para <strong>"Aguarda Pagamento"</strong>?</p>
+        <form action="{{ route('cadastros.updateEstado', $cadastro->id) }}" method="POST">
+            @csrf
+            @method('PATCH')
+            <input type="hidden" name="estado_id" value="{{ $estadoAguarda->id }}">
+            <div class="flex justify-end gap-2">
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Sim</button>
+                <button type="button" data-modal-toggle="aguarda-modal" class="px-4 py-2 bg-gray-300 text-black rounded-lg">Cancelar</button>
             </div>
         </form>
     </div>
-
 </div>
+@endif
 
-</body>
-</html>
+@if($estadoCorrecao)
+<div id="correcao-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div class="bg-white p-6 rounded-xl shadow-xl w-96 animate-fadeIn">
+        <h3 class="mb-4 font-semibold text-lg text-gray-800">Confirmar Alteração</h3>
+        <p class="mb-4 text-gray-600">Alterar o estado para <strong>"Para Correção"</strong>?</p>
+        <form action="{{ route('cadastros.updateEstado', $cadastro->id) }}" method="POST">
+            @csrf
+            @method('PATCH')
+            <input type="hidden" name="estado_id" value="{{ $estadoCorrecao->id }}">
+            <div class="flex justify-end gap-2">
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Sim</button>
+                <button type="button" data-modal-toggle="correcao-modal" class="px-4 py-2 bg-gray-300 text-black rounded-lg">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
+
+
+{{-- SCRIPTS --}}
+<script>
+    // Trocar de abas
+    document.querySelectorAll('.tab-link').forEach(tab => {
+        tab.addEventListener('click', () => {
+
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(tab.dataset.tab).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-link').forEach(t => t.classList.remove('border-blue-600', 'text-blue-600', 'font-semibold'));
+            tab.classList.add('border-blue-600', 'text-blue-600', 'font-semibold');
+        });
+    });
+
+    // Modais
+    document.querySelectorAll('[data-modal-toggle]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const modal = document.getElementById(btn.dataset.modalToggle);
+            modal.classList.toggle('hidden');
+        });
+    });
+</script>
+
+@endsection

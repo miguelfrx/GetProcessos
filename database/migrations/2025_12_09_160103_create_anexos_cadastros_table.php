@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up()
+    {
+        Schema::create('anexos_cadastros', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('idcadastro');
+            $table->text('ficheiro');
+            $table->text('caminho');
+            $table->dateTime('data_entrada');
+            $table->text('tipo');
+            $table->timestamps();
+
+            $table->foreign('idcadastro')->references('id')->on('cadastros')->onDelete('cascade');
+        });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('anexos_cadastros');
+    }
+};

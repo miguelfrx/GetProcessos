@@ -32,8 +32,6 @@
 
                 <ul class="p-2 text-sm">
                     <li><a href="#" class="block px-3 py-2 rounded hover:bg-gray-200/50">Dashboard</a></li>
-                    <li><a href="#" class="block px-3 py-2 rounded hover:bg-gray-200/50">Settings</a></li>
-                    <li><a href="#" class="block px-3 py-2 rounded hover:bg-gray-200/50">Earnings</a></li>
                     <li>
                         <a href="{{ route('logout') }}"
                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
@@ -59,13 +57,13 @@
         </div>
 
         <!-- LINKS MENU -->
-        <div class="hidden md:flex space-x-8 md:order-1" id="navbar-user">
+        <!--<div class="hidden md:flex space-x-8 md:order-1" id="navbar-user">
             <a href="{{ url('/paginamain') }}" class="text-gray-900 hover:text-gray-700 transition">Home</a>
             <a href="#" class="text-gray-900 hover:text-gray-700 transition">About</a>
             <a href="#" class="text-gray-900 hover:text-gray-700 transition">Services</a>
             <a href="#" class="text-gray-900 hover:text-gray-700 transition">Pricing</a>
             <a href="#" class="text-gray-900 hover:text-gray-700 transition">Contact</a>
-        </div>
+        </div> -->
 
     </div>
 </nav>

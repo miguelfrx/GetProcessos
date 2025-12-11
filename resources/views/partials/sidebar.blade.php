@@ -41,7 +41,7 @@
                         <li class="flex justify-between items-center relative">
                             <a href="{{ url('/todos-cadastros') }}" 
                                class="block text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded px-2 py-1">
-                                Todos Cadastros
+                                Consultar
                             </a>
                             @if(isset($todosCadastrosCount) && $todosCadastrosCount > 0)
                                 <span class="absolute right-0 top-1/2 transform -translate-y-1/2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold text-white bg-red-600 rounded-full">
@@ -61,9 +61,9 @@
                             @endif
                         </li>
                         <li class="flex justify-between items-center relative">
-                            <a href="{{ route('criar.processo') }}" 
+                            <a href="{{ route('cadastros.create') }}" 
                                 class="block text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded px-2 py-1">
-                                    Criar Novo Processo
+                                    Criar Novo Cadastro
                             </a>
                             </li>  
                     </ul>

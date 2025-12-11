@@ -4,30 +4,39 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\Cadastro;
+use App\Models\Estado;
+use App\Models\EstadoCadastro;
 
 class MainController extends Controller
 {
     // Página principal com os contadores
     public function index()
     {
-        $todosCadastrosCount = DB::table('TodosCadastros')->count();
+        $CadastrosCount = Cadastro::count();
 
-        $tratarCadastrosCount = DB::table('TodosCadastros')
-            ->where('Estado', 'amarelo') // agora é amarelo, não 'a tratar'
-            ->count();
+        // Pega o id do estado "amarelo"
+        $estadoAmarelo = EstadoCadastro::where('descricao', 'amarelo')->first();
 
-        return view('paginamain', compact('todosCadastrosCount', 'tratarCadastrosCount'));
+        $tratarCadastrosCount = 0;
+        if ($estadoAmarelo) {
+            $tratarCadastrosCount = Cadastro::where('estado_id', $estadoAmarelo->id)->count();
+        }
+
+        return view('paginamain', compact('CadastrosCount', 'tratarCadastrosCount'));
     }
 
-
     // Página "Todos os Cadastros"
-    public function todosCadastros(Request $request)
+    public function cadastros(Request $request)
     {
-        $query = DB::table('TodosCadastros');
+        $query = Cadastro::query()->with('estado'); // carrega o estado relacionado
 
         // Filtro por estado
-        if ($request->filled('estado') && in_array($request->estado, ['verde','amarelo','vermelho','a tratar'])) {
-            $query->where('Estado', $request->estado);
+        if ($request->filled('estado')) {
+            $estado = EstadoCadastro::where('descricao', $request->estado)->first();
+            if ($estado) {
+                $query->where('estado_id', $estado->id);
+            }
         }
 
         // Pesquisa por nome ou email
@@ -45,15 +54,17 @@ class MainController extends Controller
     }
 
     // Página "A Tratar"
-        public function tratarCadastros()
+    public function tratarCadastros()
     {
-        $cadastros = DB::table('TodosCadastros')
-            ->where('Estado', 'amarelo') // filtra apenas amarelo
-            ->get();
+        $estadoAmarelo = EstadoCadastro::where('descricao', 'amarelo')->first();
+        $cadastros = collect();
 
-        // contagem para o badge
+        if ($estadoAmarelo) {
+            $cadastros = Cadastro::where('estado_id', $estadoAmarelo->id)->with('estado')->get();
+        }
+
         $tratarCadastrosCount = $cadastros->count();
 
         return view('cadastros.cadastros', compact('cadastros', 'tratarCadastrosCount'));
-}
+    }
 }

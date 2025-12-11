@@ -2,46 +2,54 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use App\Models\Cadastro;
+use App\Models\AnexoCadastro;
+use App\Models\EstadoCadastro;
+use App\Models\HistoricoCadastro; // importa o model do histórico
+use Illuminate\Support\Facades\Storage;
 
 class CadastroController extends Controller
 {
     public function show($id)
     {
-        $cadastro = DB::table('TodosCadastros')->where('id', $id)->first();
+        $cadastro = Cadastro::with('anexos', 'estado')->findOrFail($id);
 
-        if (!$cadastro) {
-            abort(404, 'Cadastro não encontrado');
-        }
+        // Buscar estados para os botões
+        $estadoAguarda = EstadoCadastro::where('descricao', 'Aguardar Pagamento')->first();
+        $estadoCorrecao = EstadoCadastro::where('descricao', 'Para Correção')->first();
 
-        return view('cadastros.show', compact('cadastro'));
+        return view('cadastros.show', compact('cadastro', 'estadoAguarda', 'estadoCorrecao'));
     }
 
-    public function update(Request $request, $id)
-{
-    $request->validate([
-        'nome' => 'required|string|max:255',
-        'email' => 'required|email|max:255',
-        'contacto' => 'nullable|string|max:50',
-        'estado' => 'required|in:verde,amarelo,vermelho,a tratar',
-        'responsavel' => 'nullable|string|max:255',
-    ]);
+    public function updateEstado(Request $request, $id)
+    {
+        $cadastro = Cadastro::findOrFail($id);
 
-    DB::table('TodosCadastros')
-        ->where('id', $id)
-        ->update([
-            'nome' => $request->nome,
-            'email' => $request->email,
-            'contacto' => $request->contacto,
-            'estado' => $request->estado,
-            'responsavel' => $request->responsavel,
-            'updated_at' => now(),
-        ]);
+        // Verifica se o estado_id existe e é válido
+        $novoEstado = EstadoCadastro::find($request->estado_id);
+        if ($novoEstado) {
 
-    return redirect()->route('cadastros.show', $id)
-                     ->with('success', 'Cadastro atualizado com sucesso!');
+            // Guarda o estado anterior
+            $estadoAnterior = $cadastro->estado_id;
+
+            // Atualiza o cadastro
+            $cadastro->estado_id = $novoEstado->id;
+            $cadastro->save();
+
+            // Regista no histórico
+            HistoricoCadastro::create([
+                'cadastro_id' => $cadastro->id,
+                'data_hora' => now(),
+                'id_user' => auth()->Null, // se não houver login, podes colocar null
+                'id_tecnico' => $cadastro->id_tecnico,
+                'estado_anterior_id' => $estadoAnterior,
+                'estado_atual_id' => $novoEstado->id
+            ]);
+
+            return redirect()->back()->with('success', 'Estado atualizado com sucesso!');
+        }
+
+        return redirect()->back()->with('error', 'Estado inválido.');
+    }
 }
-
-}
-

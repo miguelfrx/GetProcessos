@@ -27,6 +27,26 @@
     </div>
 
     @include('partials.sidebar')
+    @if(session('success'))
+    <div 
+        id="toast-success" 
+        class="fixed top-5 right-5 bg-green-500 text-white px-4 py-3 rounded shadow-lg transform transition-all duration-500 opacity-0 z-[9999]"
+    >
+        {{ session('success') }}
+    </div>
+
+    <script>
+        const toast = document.getElementById('toast-success');
+        toast.classList.remove('opacity-0');
+        toast.classList.add('opacity-100');
+
+        setTimeout(() => {
+            toast.classList.remove('opacity-100');
+            toast.classList.add('opacity-0');
+        }, 3000);
+    </script>
+@endif
+
 
     <!-- Conteúdo principal -->
     <div class="p-4 sm:ml-64 mt-20">
