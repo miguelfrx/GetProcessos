@@ -40,6 +40,11 @@ Route::middleware('auth')->group(function() {
         ->name('cadastros.updateEstado');
 
     Route::get('/anexos/download/{id}', [CadastroController::class, 'download'])->name('download.anexo');
+
+    Route::get('cadastros/{id}/estado', function($id){
+    return redirect()->back()->with('error', 'Acesso inválido.');
+});
+
 });
 
 Route::get('/', function () {

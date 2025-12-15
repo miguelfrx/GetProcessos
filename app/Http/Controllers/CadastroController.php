@@ -41,7 +41,7 @@ class CadastroController extends Controller
             HistoricoCadastro::create([
                 'cadastro_id' => $cadastro->id,
                 'data_hora' => now(),
-                'id_user' => auth()->Null, // se não houver login, podes colocar null
+                'id_user' => auth()->user()->id ?? null,
                 'id_tecnico' => $cadastro->id_tecnico,
                 'estado_anterior_id' => $estadoAnterior,
                 'estado_atual_id' => $novoEstado->id

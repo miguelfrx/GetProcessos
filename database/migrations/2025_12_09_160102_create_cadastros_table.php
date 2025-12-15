@@ -8,25 +8,30 @@ return new class extends Migration
 {
     public function up()
     {
+        if (!Schema::hasTable('cadastros')) {
         Schema::create('cadastros', function (Blueprint $table) {
             $table->id();
             $table->text('nome');
-            $table->text('email');
-            $table->unsignedInteger('contato');
+            $table->text('email')->nullable();
+            $table->string('contato')->nullable(); // Melhor string
             $table->dateTime('data_entrada')->nullable();
-            $table->unsignedInteger('id_tecnico');
+            $table->unsignedBigInteger('id_tecnico')->nullable();
             $table->unsignedBigInteger('estado_id'); // foreign key
-            $table->text('numcadastro');
+            $table->text('numcadastro')->nullable();
             $table->string('nomeFaturacao', 255)->nullable();
-            $table->unsignedInteger('nifFaturacao')->nullable();
+            $table->string('nifFaturacao', 20)->nullable(); // string em vez de integer
             $table->string('moradaFaturacao', 255)->nullable();
             $table->string('codigoPostalFaturacao', 45)->nullable();
             $table->string('localidadeFaturacao', 50)->nullable();
-            $table->timestamps(); // created_at e updated_at
+            $table->timestamps();
 
-            // Chave estrangeira para estados
-            $table->foreign('estado_id')->references('id')->on('estados')->onDelete('restrict');
+            // Foreign key corrigida
+            $table->foreign('estado_id')
+                  ->references('id')
+                  ->on('estados_cadastros') // nome correto da tabela
+                  ->onDelete('restrict');
         });
+        }
     }
 
     public function down()
