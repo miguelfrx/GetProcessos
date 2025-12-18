@@ -7,6 +7,8 @@ use App\Models\Cadastro;
 use App\Models\EstadoCadastro;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use App\Mail\DocumentoSubmetido;
+use Illuminate\Support\Facades\Mail;
 
 class AnexoController extends Controller
 {
@@ -33,23 +35,25 @@ class AnexoController extends Controller
         $file->storeAs('anexos', $filename, 'public');
 
         // Criar registo na BD
-        $cadastro->anexos()->create([
+        $novoAnexo = $cadastro->anexos()->create([
             'ficheiro'      => $filename,
-            'tipo'          => $extensao,   // automático
+            'tipo'          => $extensao,
             'caminho'       => 'anexos/' . $filename,
             'data_entrada'  => now(),
         ]);
 
-        // --- Atualizar estado automaticamente ---
-        $estadoAtual = $cadastro->estado->descricao; // estado atual do cadastro
+        /* =====================================================
+           ATUALIZAR ESTADO AUTOMATICAMENTE
+        ===================================================== */
 
-        // Sequência de estados
+        $estadoAtual = $cadastro->estado->descricao;
+
         $sequenciaEstados = [
-            'Submetido' => 'Para Correção',
-            'Para Correção' => 'Aguardar Pagamento',
-            'Aguardar Pagamento' => 'Pagamento Efectuado',
+            'Submetido'           => 'Para Correção',
+            'Para Correção'       => 'Aguardar Pagamento',
+            'Aguardar Pagamento'  => 'Pagamento Efectuado',
             'Pagamento Efectuado' => 'Concluído',
-            'Concluído' => 'Concluído' // mantém-se no final
+            'Concluído'           => 'Concluído'
         ];
 
         $novoEstadoDescricao = $sequenciaEstados[$estadoAtual] ?? $estadoAtual;
@@ -57,11 +61,22 @@ class AnexoController extends Controller
         $novoEstado = DB::table('estados_cadastros')
             ->where('descricao', $novoEstadoDescricao)
             ->first();
-            
-        // Atualizar cadastro
-        $cadastro->estado_id = $novoEstado->id;
-        $cadastro->save();
 
-        return redirect()->back()->with('success', 'Anexo enviado com sucesso! Estado atualizado para: ' . $novoEstado->descricao);
+        if ($novoEstado) {
+            $cadastro->estado_id = $novoEstado->id;
+            $cadastro->save();
+        }
+
+        /* =====================================================
+           ENVIO DE EMAIL AUTOMÁTICO
+        ===================================================== */
+
+        Mail::to('destinatario@dominio.com')
+            ->send(new DocumentoSubmetido($cadastro, $novoAnexo));
+
+        return redirect()->back()->with(
+            'success',
+            'Anexo enviado com sucesso! Estado atualizado para: ' . $novoEstado->descricao
+        );
     }
 }
