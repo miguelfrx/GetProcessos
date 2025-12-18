@@ -6,8 +6,11 @@ use Illuminate\Http\Request;
 use App\Models\Cadastro;
 use App\Models\AnexoCadastro;
 use App\Models\EstadoCadastro;
-use App\Models\HistoricoCadastro; // importa o model do histórico
+use App\Models\HistoricoCadastro; 
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+
 
 class CadastroController extends Controller
 {
@@ -41,7 +44,7 @@ class CadastroController extends Controller
             HistoricoCadastro::create([
                 'cadastro_id' => $cadastro->id,
                 'data_hora' => now(),
-                'id_user' => auth()->user()->id ?? null,
+                'id_user' => auth::id(),
                 'id_tecnico' => $cadastro->id_tecnico,
                 'estado_anterior_id' => $estadoAnterior,
                 'estado_atual_id' => $novoEstado->id

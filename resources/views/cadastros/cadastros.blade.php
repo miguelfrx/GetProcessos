@@ -88,7 +88,13 @@
                         </span>
                     </td>
 
-                    <td class="px-4 py-2">{{ $cadastro->anexos ?? '-' }}</td>
+                    <td class="px-4 py-2">
+                        @if($cadastro->anexos->isNotEmpty())
+                            {{ $cadastro->anexos->pluck('ficheiro')->join(', ') }}
+                        @else
+                            -
+                        @endif
+                    </td>
                 </tr>
                 @empty
                 <tr>

@@ -55,18 +55,5 @@
             </button>
 
         </div>
-
-        <!-- LINKS MENU -->
-        <!--<div class="hidden md:flex space-x-8 md:order-1" id="navbar-user">
-            <a href="{{ url('/paginamain') }}" class="text-gray-900 hover:text-gray-700 transition">Home</a>
-            <a href="#" class="text-gray-900 hover:text-gray-700 transition">About</a>
-            <a href="#" class="text-gray-900 hover:text-gray-700 transition">Services</a>
-            <a href="#" class="text-gray-900 hover:text-gray-700 transition">Pricing</a>
-            <a href="#" class="text-gray-900 hover:text-gray-700 transition">Contact</a>
-        </div> -->
-
     </div>
 </nav>
-
-<!-- Flowbite JS -->
-<script src="https://unpkg.com/flowbite@1.7.0/dist/flowbite.js"></script>

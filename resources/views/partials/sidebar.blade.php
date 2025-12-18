@@ -3,27 +3,6 @@
         
         <div class="h-full px-3 py-4 overflow-y-auto">
             <ul class="space-y-2 font-medium">
-
-                <li>
-                    <a href="#" class="flex items-center px-2 py-2 text-gray-800 rounded hover:bg-gray-100">
-                        Dashboard
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="flex items-center px-2 py-2 text-gray-800 rounded hover:bg-gray-100">
-                        Kanban
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="flex items-center px-2 py-2 text-gray-800 rounded hover:bg-gray-100">
-                        Inbox
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="flex items-center px-2 py-2 text-gray-800 rounded hover:bg-gray-100">
-                        Users
-                    </a>
-                </li>
                 <li>
                     <a href="#" class="flex items-center px-2 py-2 text-gray-800 rounded hover:bg-gray-100">
                         Processos 
@@ -59,13 +38,7 @@
                                     {{ $tratarCadastrosCount > 99 ? '99+' : $tratarCadastrosCount }}
                                 </span>
                             @endif
-                        </li>
-                        <li class="flex justify-between items-center relative">
-                            <a href="{{ route('cadastros.create') }}" 
-                                class="block text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded px-2 py-1">
-                                    Criar Novo Cadastro
-                            </a>
-                            </li>  
+                        </li> 
                     </ul>
                 </li>
 

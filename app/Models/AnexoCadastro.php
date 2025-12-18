@@ -9,14 +9,15 @@ class AnexoCadastro extends Model
 {
     use HasFactory;
 
-    protected $table = 'anexos_cadastros';
+    protected $table = 'anexos_cadastros'; // ou o nome certo da tabela
 
     protected $fillable = [
-        'idcadastro', 'ficheiro', 'caminho', 'data_entrada', 'tipo'
+        'idcadastro',
+        'ficheiro',
+        'tipo',
+        'caminho',
+        'data_entrada'
     ];
 
-    public function cadastro()
-    {
-        return $this->belongsTo(Cadastro::class, 'idcadastro');
-    }
+    public $timestamps = false;
 }

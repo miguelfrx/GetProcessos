@@ -9,14 +9,11 @@ class EstadoCadastro extends Model
 {
     use HasFactory;
 
-    protected $table = 'estados_cadastros'; // <-- corrigido
+    protected $table = 'estados_cadastros';
 
     protected $fillable = [
         'descricao'
     ];
 
-    public function cadastros()
-    {
-        return $this->hasMany(Cadastro::class, 'estado_id');
-    }
+    public $timestamps = false;
 }
