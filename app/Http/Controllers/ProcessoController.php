@@ -3,84 +3,119 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Processo;
+use App\Models\Assunto; // Certifique-se de ter este Model se usar a tabela de assuntos
+use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf; // Necessário instalar: composer require barryvdh/laravel-dompdf
 
 class ProcessoController extends Controller
 {
-    // Mostrar formulário
-    public function create()
+    public function index(Request $request)
     {
-        return view('cadastros.criar');
-    }
+        $query = Processo::query()
+            ->with(['estado', 'tecnica'])
+            ->withCount('aditamentos');
 
-    // Guardar novo processo
-    public function store(Request $request)
-    {
-        // Validação dos campos
-        $request->validate([
-            'nome' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'estado' => 'required|in:verde,amarelo,vermelho,a tratar',
-            'anexos.*' => 'file|max:5120', // até 5MB por anexo
-        ]);
-
-        $anexosNomes = [];
-
-        // Guardar anexos
-        if ($request->hasFile('anexos')) {
-            foreach ($request->file('anexos') as $file) {
-                // Nome único
-                $nome = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
-
-                // Guardar no storage/app/public/anexos
-                $file->storeAs('public/anexos', $nome);
-
-                // Guardar nome no array para a BD
-                $anexosNomes[] = $nome;
-            }
+        /* ==========================
+           FILTRO: PESQUISA
+        ========================== */
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('numero_processo', 'like', "%$search%")
+                    ->orWhere('requerente', 'like', "%$search%")
+                    ->orWhere('origem', 'like', "%$search%");
+            });
         }
 
-        // Inserir na base de dados
-        DB::table('cadastros')->insert([
-            'nome' => $request->nome,
-            'email' => $request->email,
-            'estado' => $request->estado,
-            'anexos' => json_encode($anexosNomes), // <--- FORMATADO como JSON
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        /* ==========================
+           FILTRO: ESTADO
+        ========================== */
+        if ($request->filled('estado')) {
+            $query->whereHas('estado', function ($q) use ($request) {
+                $q->where('descricao', $request->estado);
+            });
+        }
 
-        return redirect()
-            ->route('paginamain')
-            ->with('success', 'Processo criado com sucesso!');
+        /* ==========================
+           TÉCNICA VÊ SÓ OS SEUS
+           Proteção ?-> adicionada para evitar erro se não houver user logado
+        ========================== */
+        if (Auth::user()?->perfil === 'tecnica') {
+            $query->where('tecnica_id', Auth::id());
+        }
+
+        $processos = $query
+            ->orderByDesc('created_at')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('processos.index', compact('processos'));
     }
 
-
-    // Mostrar processo + anexos
     public function show($id)
     {
-        $cadastro = DB::table('cadastros')->where('id', $id)->first();
+        $processo = Processo::with([
+            'estado',
+            'tecnica',
+            'aditamentos.pecas',
+            'historico',
+            'oficios'
+        ])->findOrFail($id);
 
-        if (!$cadastro) {
-            abort(404, "Processo não encontrado");
-        }
-
-        // Converter JSON → array
-        $cadastro->anexos = $cadastro->anexos ? json_decode($cadastro->anexos, true) : [];
-
-        return view('cadastros.show', compact('cadastro'));
+        return view('processos.show', compact('processo'));
     }
 
-    // Download do anexo
-    public function downloadAnexo($filename)
+    /* ============================================================
+       NOVOS MÉTODOS PARA OFÍCIOS (PDF)
+    ============================================================ */
+
+    /**
+     * Exibe o formulário de criação de Ofício
+     */
+    public function createOficio()
     {
-        $path = storage_path("app/public/anexos/" . $filename);
+        // Carrega os processos para o dropdown do formulário
+        $processos = Processo::orderBy('numero_processo')->get();
 
-        if (!file_exists($path)) {
-            abort(404, "Ficheiro não encontrado");
-        }
+        // Se já tiver a tabela de assuntos:
+        // $assuntos = Assunto::all(); 
 
-        return response()->download($path);
+        return view('processos.oficios', compact('processos'));
+    }
+
+    /**
+     * Processa os dados do formulário e gera o PDF
+     */
+    public function generatePDF(Request $request)
+    {
+        // 1. Validação simples
+        $request->validate([
+            'processo_id' => 'required|exists:processos,id',
+            'assunto' => 'required|string',
+            'conteudo' => 'required|string',
+        ]);
+
+        // 2. Busca os dados necessários
+        $processo = Processo::with('tecnica')->findOrFail($request->processo_id);
+
+        // Aqui simulamos o ID do aditamento conforme sua lógica
+        // No futuro, você buscará o ID real do aditamento criado
+        $aditamento_id = "ADT-" . date('Y') . "/" . rand(100, 999);
+
+        $data = [
+            'numero_processo' => $processo->numero_processo,
+            'aditamento_id'   => $aditamento_id,
+            'tecnica_nome'    => $processo->tecnica_nome ?? ($processo->tecnica->nome ?? 'Não atribuído'),
+            'assunto'         => $request->assunto,
+            'conteudo'        => $request->conteudo,
+            'data_atual'      => date('d/m/Y')
+        ];
+
+        // 3. Gera o PDF usando a view dedicada
+        $pdf = Pdf::loadView('pdf.oficio', $data);
+
+        // 4. Retorna o PDF (stream abre no navegador, download força o baixar)
+        return $pdf->stream('Oficio_' . str_replace('/', '-', $processo->numero_processo) . '.pdf');
     }
 }
