@@ -1,123 +1,146 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html>
 
 <head>
     <meta charset="utf-8">
+    <title>Ofício - {{ $processo->numero_eamb }}</title>
     <style>
         body {
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 11pt;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 12px;
             color: #333;
             line-height: 1.5;
         }
 
-        .header-logo {
-            text-align: left;
-            margin-bottom: 20px;
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #005596;
+            padding-bottom: 10px;
+            /* Corrigido: era 'pb' */
         }
 
         .logo {
-            width: 150px;
-        }
-
-        /* Bloco de Informações do Processo e Requerente */
-        .info-box {
-            margin-bottom: 30px;
-            border-left: 3px solid #0056b3;
-            padding-left: 15px;
-        }
-
-        .info-box p {
-            margin: 2px 0;
-            font-size: 10pt;
-        }
-
-        .requerente-section {
-            margin-top: 15px;
+            font-size: 24px;
             font-weight: bold;
+            color: #005596;
+            text-transform: uppercase;
         }
 
-        /* Caixa de Texto Sempre Igual */
-        .texto-fixo {
-            background: #f9f9f9;
-            padding: 10px;
-            border: 1px solid #ddd;
+        .info-table {
+            width: 100%;
             margin-bottom: 20px;
-            font-style: italic;
-            font-size: 10pt;
+            border-collapse: collapse;
         }
 
-        .assunto-header {
+        .info-table td {
+            padding: 5px;
+            vertical-align: top;
+        }
+
+        .label {
             font-weight: bold;
             text-transform: uppercase;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #000;
+            font-size: 10px;
+            color: #666;
         }
 
-        .conteudo-dinamico {
-            margin-top: 20px;
-            min-height: 200px;
+        .content {
+            margin-top: 30px;
             text-align: justify;
         }
 
-        /* Rodapé / Assinaturas */
-        .assinatura-section {
-            margin-top: 50px;
-            text-align: center;
-            width: 300px;
-            float: right;
+        .materials-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
         }
 
-        .assinatura-linha {
-            border-top: 1px solid #333;
-            margin-top: 40px;
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 10px;
+            color: #999;
+            border-top: 1px solid #eee;
             padding-top: 5px;
+            /* Corrigido: era 'pt' */
+        }
+
+        .signature {
+            margin-top: 50px;
+            text-align: center;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="header-logo">
-        {{-- <img src="{{ $logo }}" class="logo"> --}}
-        <h2 style="color: #0056b3;">ESPOSENDE AMBIENTE</h2>
+    <div class="header">
+        <div class="logo">Esposende Ambiente, E.E.M.</div>
+        <div style="font-size: 10px;">Gestão de Águas e Resíduos</div>
     </div>
 
-    <div class="info-box">
-        <p><strong>Processo CME Nº:</strong> {{ $processo_cme }}</p>
-        <p><strong>Processo EAmb Nº:</strong> {{ $processo_eamb }}</p>
-        <p><strong>Data Entrada:</strong> {{ $data_entrada }}</p>
-        <p><strong>ID Aditamento:</strong> {{ $id_aditamento }}</p>
-        <p><strong>Data Atual:</strong> {{ $data_atual }}</p>
+    <table class="info-table">
+        <tr>
+            <td width="50%">
+                <span class="label">Nº Processo EAmb:</span><br>
+                <strong>{{ $processo->numero_eamb }}</strong>
+            </td>
+            <td width="50%">
+                <span class="label">Nº Processo CME:</span><br>
+                <strong>{{ $processo->numero_cme ?? '---' }}</strong> {{-- Correção do erro aqui --}}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="label">Data de Emissão:</span><br>
+                {{ $data_atual }}
+            </td>
+            <td>
+                <span class="label">ID Aditamento:</span><br>
+                {{ $id_aditamento }}
+            </td>
+        </tr>
+    </table>
 
-        <div class="requerente-section">
-            <p>Requerente: {{ $requerente }}</p>
-            <p>Local: {{ $local_morada }}</p>
+    <div style="margin-top: 20px;">
+        <span class="label">Requerente:</span><br>
+        <strong>{{ $processo->requerente }}</strong><br>
+        {{ $processo->morada_localizacao }}
+    </div>
+
+    <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
+        <span class="label">Assunto:</span><br>
+        <strong style="font-size: 14px;">{{ $assunto_selecionado }}</strong>
+    </div>
+
+    <div class="content">
+        {!! nl2br(e($texto_corpo)) !!}
+    </div>
+
+    @if($materiais)
+    <div class="materials-box">
+        <span class="label">Materiais / Equipamentos Aplicados:</span><br>
+        <div style="margin-top: 5px;">
+            {!! nl2br(e($materiais)) !!}
+        </div>
+    </div>
+    @endif
+
+    <div class="signature">
+        <p>Esposende, {{ $data_atual }}</p>
+        <div style="margin-top: 40px;">
+            ________________________________________________<br>
+            <strong>{{ $processo->tecnica->nome ?? 'Serviços Técnicos' }}</strong><br>
+            Esposende Ambiente
         </div>
     </div>
 
-    <div class="texto-fixo">
-        No âmbito das competências delegadas pela Câmara Municipal de Esposende, a Esposende Ambiente informa que o processo acima identificado foi analisado tecnicamente de acordo com os regulamentos em vigor...
-    </div>
-
-    <div class="assunto-header">
-        ASSUNTO: {{ $assunto }}
-    </div>
-
-    <div class="conteudo-dinamico">
-        {!! $conteudo !!}
-    </div>
-
-    <div style="margin-top: 30px;">
-        Com os melhores cumprimentos,
-    </div>
-
-    <div class="assinatura-section">
-        <p>{{ $data_atual }}</p>
-        <div class="assinatura-linha">
-            <strong>{{ $tecnico_nome }}</strong><br>
-            {{ $tecnico_cargo }}
-        </div>
+    <div class="footer">
+        Esposende Ambiente, E.E.M. | Rua da Senhora da Saúde, Esposende | NIF: 504 532 505
     </div>
 
 </body>

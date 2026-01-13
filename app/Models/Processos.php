@@ -34,27 +34,19 @@ class Processos extends Model
         return $this->belongsTo(EstadoProcesso::class, 'estado_id');
     }
 
-    /**
-     * Relação com a Técnica Responsável (Ana ou Maria)
-     * Corrigido: Usar 'Tecnica' no singular para condizer com o ficheiro Tecnica.php
-     */
+
     public function tecnica(): BelongsTo
     {
         return $this->belongsTo(Tecnicas::class, 'tecnica_id');
     }
 
-    /**
-     * Relação com Aditamentos (Histórico e descrição técnica)
-     */
+
     public function aditamentos(): HasMany
     {
         return $this->hasMany(Aditamento::class, 'processo_id');
     }
 
-    /**
-     * Relação com Despachos (Documentos gerados para PDF/Email)
-     * Corrigido: Usar 'Despacho' no singular
-     */
+
     public function despachos(): HasMany
     {
         return $this->hasMany(Despachos::class, 'processo_id');
