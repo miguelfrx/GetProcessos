@@ -4,118 +4,115 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Processo;
-use App\Models\Assunto; // Certifique-se de ter este Model se usar a tabela de assuntos
+use App\Models\Assunto;
+use App\Models\EstadoProcesso;
+use App\Models\Aditamento;
+use App\Models\Processos;
+use App\Models\Tecnica;
 use Illuminate\Support\Facades\Auth;
-use Barryvdh\DomPDF\Facade\Pdf; // Necessário instalar: composer require barryvdh/laravel-dompdf
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProcessoController extends Controller
 {
+    /**
+     * Lista todos os processos com filtros de pesquisa e estado
+     */
     public function index(Request $request)
     {
-        $query = Processo::query()
-            ->with(['estado', 'tecnica'])
+        $query = Processos::with(['estado', 'tecnica'])
             ->withCount('aditamentos');
 
-        /* ==========================
-           FILTRO: PESQUISA
-        ========================== */
+        // Filtro de Pesquisa (Nº EAmb, Requerente ou Nº CME)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('numero_processo', 'like', "%$search%")
-                    ->orWhere('requerente', 'like', "%$search%")
-                    ->orWhere('origem', 'like', "%$search%");
+                $q->where('numero_eamb', 'like', "%$search%")
+                    ->orWhere('numero_cme', 'like', "%$search%")
+                    ->orWhere('requerente', 'like', "%$search%");
             });
         }
 
-        /* ==========================
-           FILTRO: ESTADO
-        ========================== */
+        // Filtro por Estado (ID vindo do dropdown)
         if ($request->filled('estado')) {
-            $query->whereHas('estado', function ($q) use ($request) {
-                $q->where('descricao', $request->estado);
-            });
+            $query->where('estado_id', $request->estado);
         }
 
-        /* ==========================
-           TÉCNICA VÊ SÓ OS SEUS
-           Proteção ?-> adicionada para evitar erro se não houver user logado
-        ========================== */
-        if (Auth::user()?->perfil === 'tecnica') {
-            $query->where('tecnica_id', Auth::id());
-        }
+        $processos = $query->orderByDesc('created_at')->paginate(15)->withQueryString();
+        $estados = EstadoProcesso::all();
 
-        $processos = $query
-            ->orderByDesc('created_at')
-            ->paginate(15)
-            ->withQueryString();
-
-        return view('processos.index', compact('processos'));
+        return view('Processos.processos', compact('processos', 'estados'));
     }
 
+    /**
+     * Mostra os detalhes de um processo (Página: showprocessos.blade.php)
+     */
     public function show($id)
     {
-        $processo = Processo::with([
+        // Carrega o processo com as relações para mostrar histórico e técnica
+        $processo = Processos::with([
             'estado',
             'tecnica',
-            'aditamentos.pecas',
-            'historico',
-            'oficios'
+            'aditamentos.tecnica'
         ])->findOrFail($id);
 
-        return view('processos.show', compact('processo'));
+        return view('Processos.showprocessos', compact('processo'));
     }
 
-    /* ============================================================
-       NOVOS MÉTODOS PARA OFÍCIOS (PDF)
-    ============================================================ */
-
     /**
-     * Exibe o formulário de criação de Ofício
+     * Regista um Aditamento, grava histórico e muda estado para "em Apreciação"
      */
-    public function createOficio()
+    public function storeAditamento(Request $request, $id)
     {
-        // Carrega os processos para o dropdown do formulário
-        $processos = Processo::orderBy('numero_processo')->get();
+        $processo = Processos::findOrFail($id);
 
-        // Se já tiver a tabela de assuntos:
-        // $assuntos = Assunto::all(); 
+        // 1. Cria o Aditamento na base de dados
+        $processo->aditamentos()->create([
+            'tecnica_id'   => $processo->tecnica_id, // Mantém a técnica par/ímpar original
+            'descricao'    => $request->descricao ?? 'Início da análise técnica.',
+            'estado_atual' => 'em Apreciação'
+        ]);
 
-        return view('processos.oficios', compact('processos'));
+        // 2. Atualiza o estado principal do processo para "em Apreciação" (ID 2)
+        $processo->update([
+            'estado_id' => 2
+        ]);
+
+        return redirect()->route('processos.show', $id)
+            ->with('success', 'Aditamento registado com sucesso!');
     }
 
     /**
-     * Processa os dados do formulário e gera o PDF
+     * Gera o PDF automático com o modelo definido
      */
     public function generatePDF(Request $request)
     {
-        // 1. Validação simples
+        // Validação dos dados que o PDF precisa
         $request->validate([
             'processo_id' => 'required|exists:processos,id',
-            'assunto' => 'required|string',
-            'conteudo' => 'required|string',
+            'assunto'     => 'required|string', // Virá da tabela de Assuntos futuramente
+            'conteudo'    => 'required|string', // Caixa de texto
         ]);
 
-        // 2. Busca os dados necessários
-        $processo = Processo::with('tecnica')->findOrFail($request->processo_id);
+        $processo = Processos::with(['tecnica', 'aditamentos'])->findOrFail($request->processo_id);
 
-        // Aqui simulamos o ID do aditamento conforme sua lógica
-        // No futuro, você buscará o ID real do aditamento criado
-        $aditamento_id = "ADT-" . date('Y') . "/" . rand(100, 999);
-
+        // Preparação dos dados para o Blade do PDF
         $data = [
-            'numero_processo' => $processo->numero_processo,
-            'aditamento_id'   => $aditamento_id,
-            'tecnica_nome'    => $processo->tecnica_nome ?? ($processo->tecnica->nome ?? 'Não atribuído'),
+            'processo_cme'    => $processo->numero_cme ?? '---',
+            'processo_eamb'   => $processo->numero_eamb,
+            'data_entrada'    => $processo->data_entrada ? date('d/m/Y', strtotime($processo->data_entrada)) : '---',
+            'id_aditamento'   => $processo->aditamentos->last()->id ?? 'N/A',
+            'data_atual'      => date('d/m/Y'),
+            'requerente'      => $processo->requerente,
             'assunto'         => $request->assunto,
             'conteudo'        => $request->conteudo,
-            'data_atual'      => date('d/m/Y')
+            'tecnico_nome'    => $processo->tecnica->nome ?? 'Responsável Técnico',
+            'tecnico_cargo'   => 'Técnico/a de Ambiente',
         ];
 
-        // 3. Gera o PDF usando a view dedicada
-        $pdf = Pdf::loadView('pdf.oficio', $data);
+        // Carrega o PDF a partir de uma view específica para o layout do documento
+        $pdf = Pdf::loadView('pdf.modelo_oficial', $data);
+        $pdf->setPaper('a4', 'portrait');
 
-        // 4. Retorna o PDF (stream abre no navegador, download força o baixar)
-        return $pdf->stream('Oficio_' . str_replace('/', '-', $processo->numero_processo) . '.pdf');
+        return $pdf->stream('Oficio_' . $processo->numero_eamb . '.pdf');
     }
 }

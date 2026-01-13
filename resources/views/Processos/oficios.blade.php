@@ -135,7 +135,7 @@
         }
     }
 
-    .animate-fadeIn {
+    x .animate-fadeIn {
         animation: fadeIn 0.5s ease-out forwards;
     }
 </style>

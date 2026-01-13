@@ -6,21 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
         Schema::create('tecnicas', function (Blueprint $table) {
-            $table->id();
+            $table->id(); // Este será o ID da técnica usado na distribuição
+            $table->string('nome');
+            $table->string('email')->unique();
+            $table->boolean('ativa')->default(true); // Para o caso de uma técnica estar de férias
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('tecnicas');
     }

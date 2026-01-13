@@ -60,4 +60,7 @@ Route::middleware('auth')->group(function () {
     // --- ANEXOS ---
     Route::get('/anexos/download/{id}', [AnexoController::class, 'download'])->name('download.anexo');
     Route::post('/cadastros/{cadastro}/anexos', [AnexoController::class, 'store'])->name('anexos.store');
+
+
+    Route::post('/processos/{id}/aditamento', [ProcessoController::class, 'storeAditamento'])->name('aditamentos.store');
 });

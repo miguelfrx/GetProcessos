@@ -6,12 +6,14 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
         Schema::create('aditamentos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('processo_id')->constrained('processos')->onDelete('cascade');
-            $table->string('descricao')->nullable();
+            $table->foreignId('tecnica_id')->constrained('tecnicas'); // Técnica que tratou este aditamento
+            $table->text('descricao')->nullable();
+            $table->string('estado_atual');
             $table->timestamps();
         });
     }
