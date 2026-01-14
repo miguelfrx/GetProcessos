@@ -1,4 +1,8 @@
 @php
+/**
+* CONVERSÃO DO LOGOTIPO PARA BASE64
+* Nome do ficheiro: esposende-ambiente-alt-1920x295.png
+*/
 $logoName = 'esposende-ambiente-alt-1920x295.png';
 $logoPath = public_path('img/' . $logoName);
 $base64 = '';
@@ -47,6 +51,7 @@ $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
             font-weight: bold;
             color: #005596;
             text-transform: uppercase;
+            margin-top: 15px;
             margin-bottom: 5px;
             border-bottom: 1px solid #eee;
         }
@@ -82,12 +87,13 @@ $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
             text-align: justify;
         }
 
-        /* 4. ASSUNTO (Título + Texto Padrão) */
+        /* 4. ASSUNTO */
         .assunto-header {
             font-size: 13px;
             font-weight: bold;
             color: #005596;
             margin-top: 15px;
+            text-transform: uppercase;
         }
 
         .texto-padrao {
@@ -95,15 +101,23 @@ $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
             color: #444;
             margin-bottom: 15px;
             padding: 5px 0;
+            text-align: justify;
         }
 
-        /* 5. TEXTO PERSONALIZADO (Caixa de Texto) */
+        /* 5. TEXTO PERSONALIZADO */
         .texto-personalizado {
             font-size: 11px;
             text-align: justify;
-            margin-bottom: 30px;
-            border-top: 1px dashed #ddd;
-            padding-top: 15px;
+            margin-bottom: 20px;
+            padding-top: 10px;
+        }
+
+        /* BLOCO DE MATERIAIS */
+        .materials-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            margin-bottom: 20px;
         }
 
         /* 6. ASSINATURA */
@@ -156,10 +170,17 @@ $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
         {!! nl2br(e($assunto_texto_padrao)) !!}
     </div>
 
-    <div class="section-title">Informação Técnica Adicional</div>
+    <div class="section-title">Parecer / Informação Técnica Adicional</div>
     <div class="texto-personalizado">
         {!! nl2br(e($texto_caixa_detalhes)) !!}
     </div>
+
+    @if(isset($materiais) && !empty($materiais))
+    <div class="section-title">Materiais e Equipamentos Utilizados</div>
+    <div class="materials-box">
+        {!! nl2br(e($materiais)) !!}
+    </div>
+    @endif
 
     <div class="signature">
         <p>Esposende, {{ $data_atual }}</p>
