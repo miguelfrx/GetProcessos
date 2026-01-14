@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Processos;
 use App\Models\EstadoProcesso;
-use App\Models\Assuntos;
+use App\Models\Assuntos; // Certifica-te que o model é Assuntos ou Assunto
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 
@@ -31,8 +31,11 @@ class ProcessoController extends Controller
 
     public function show($id)
     {
+        // Puxamos também os assuntos para a dropdown na vista de detalhes
         $processo = Processos::with(['estado', 'tecnica', 'aditamentos.tecnica'])->findOrFail($id);
-        return view('Processos.showprocessos', compact('processo'));
+        $assuntos = Assuntos::all();
+
+        return view('Processos.showprocessos', compact('processo', 'assuntos'));
     }
 
     public function storeAditamento(Request $request, $id)
@@ -52,31 +55,37 @@ class ProcessoController extends Controller
 
     public function generatePDF(Request $request, $id)
     {
-        // 1. Validar os dados que vêm do formulário
+        // 1. Validar os dados
         $request->validate([
             'assunto_id'    => 'required|exists:assuntos,id',
-            'texto_escrito' => 'required',
+            'texto_escrito' => 'required', // A tua caixa de texto (parecer)
         ]);
 
-        // 2. Procurar o processo
+        // 2. Procurar o processo com relações
         $processo = Processos::with(['tecnica', 'aditamentos'])->findOrFail($id);
 
-        // 3. DEFINIR A VARIÁVEL QUE ESTÁ A DAR ERRO
-        // Procuramos o assunto na tabela para extrair o campo 'titulo'
+        // 3. Procurar o assunto para extrair o Título e o Texto Padrão (Leis/Normas)
         $assuntoModel = Assuntos::findOrFail($request->assunto_id);
 
-        // 4. Montar o array de dados para o PDF
+        // 4. Montar o array de dados (Nomes das chaves ajustados para o PDF)
         $data = [
-            'processo'           => $processo,
-            'data_atual'         => \Carbon\Carbon::now()->format('d/m/Y'),
-            'assunto_selecionado' => $assuntoModel->titulo, // Aqui usamos a variável definida acima
-            'texto_corpo'        => $request->texto_escrito,
-            'materiais'          => $request->materiais_texto,
-            'id_aditamento'      => $processo->aditamentos->last()->id ?? 'N/A'
+            'processo'             => $processo,
+            'data_atual'           => Carbon::now()->format('d/m/Y'),
+
+            // Dados da Tabela Assuntos
+            'assunto_titulo'       => $assuntoModel->titulo,
+            'assunto_texto_padrao' => $assuntoModel->texto_padrao,
+
+            // Dados do Formulário (O que o técnico preencheu)
+            'texto_caixa_detalhes' => $request->texto_escrito,   // O Parecer
+            'materiais'            => $request->materiais_texto, // Os Materiais
+
+            'id_aditamento'        => $processo->aditamentos->last()->id ?? 'N/A'
         ];
 
         // 5. Gerar e retornar o PDF
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.oficio', $data);
+        $pdf = Pdf::loadView('pdf.oficio', $data);
+
         return $pdf->stream('Oficio_' . $processo->numero_eamb . '.pdf');
     }
 }
