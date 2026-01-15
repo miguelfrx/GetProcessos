@@ -5,16 +5,16 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Processos;
 use App\Models\EstadoProcesso;
-use App\Models\Assuntos; // Certifica-te que o model é Assuntos ou Assunto
+use App\Models\Assuntos;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 
 class ProcessoController extends Controller
 {
+    // Listagem de processos
     public function index(Request $request)
     {
         $query = Processos::with(['estado', 'tecnica']);
-
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -22,70 +22,80 @@ class ProcessoController extends Controller
                     ->orWhere('requerente', 'like', "%$search%");
             });
         }
-
         $processos = $query->orderByDesc('created_at')->paginate(15);
         $estados = EstadoProcesso::all();
-
         return view('Processos.processos', compact('processos', 'estados'));
     }
 
+    // Mostrar detalhes do processo
     public function show($id)
     {
-        // Puxamos também os assuntos para a dropdown na vista de detalhes
         $processo = Processos::with(['estado', 'tecnica', 'aditamentos.tecnica'])->findOrFail($id);
-        $assuntos = Assuntos::all();
-
-        return view('Processos.showprocessos', compact('processo', 'assuntos'));
+        return view('Processos.showprocessos', compact('processo'));
     }
 
+    // BOTÃO GERAR ADITAMENTO: Transita para "em Apreciação"
     public function storeAditamento(Request $request, $id)
     {
-        $processo = Processos::findOrFail($id);
+        $processo = Processos::with('estado')->findOrFail($id);
+        $estadoOriginal = $processo->estado->nome ?? 'Pendente';
 
+        // Regista a transição automática
         $processo->aditamentos()->create([
-            'tecnica_id'   => $processo->tecnica_id,
-            'descricao'    => $request->descricao,
-            'estado_atual' => 'em Apreciação'
+            'processo_id'           => $processo->id,
+            'tecnica_id'            => $processo->tecnica_id,
+            'data_registo'          => now(),
+            'estado_inicial'        => $estadoOriginal,
+            'estado_atual'          => 'em Apreciação',
+            'historico_aditamentos' => 'Processo colocado em "Aguardar Validação" e transitado automaticamente para "em Apreciação".',
+            'descricao'             => 'Início da fase de análise técnica.',
         ]);
 
+        // Atualiza para ID 2 (em Apreciação)
         $processo->update(['estado_id' => 2]);
 
-        return redirect()->back()->with('success', 'Análise registada!');
+        return redirect()->back()->with('success', 'Aditamento gerado! O processo está agora em apreciação.');
     }
 
+    // GERAR PDF: Cria histórico e transita para "Concluído"
     public function generatePDF(Request $request, $id)
     {
-        // 1. Validar os dados
         $request->validate([
             'assunto_id'    => 'required|exists:assuntos,id',
-            'texto_escrito' => 'required', // A tua caixa de texto (parecer)
+            'texto_escrito' => 'required',
         ]);
 
-        // 2. Procurar o processo com relações
-        $processo = Processos::with(['tecnica', 'aditamentos'])->findOrFail($id);
-
-        // 3. Procurar o assunto para extrair o Título e o Texto Padrão (Leis/Normas)
+        // 1. Procurar o processo com as relações
+        $processo = Processos::with(['tecnica', 'estado', 'aditamentos'])->findOrFail($id);
         $assuntoModel = Assuntos::findOrFail($request->assunto_id);
 
-        // 4. Montar o array de dados (Nomes das chaves ajustados para o PDF)
+        // 2. Registar o encerramento no histórico de aditamentos
+        $processo->aditamentos()->create([
+            'processo_id'           => $processo->id,
+            'tecnica_id'            => $processo->tecnica_id,
+            'data_registo'          => now(),
+            'estado_inicial'        => $processo->estado->nome ?? 'em Apreciação',
+            'estado_atual'          => 'Concluído',
+            'historico_aditamentos' => 'Ofício gerado automaticamente. O processo foi dado como finalizado.',
+            'descricao'             => 'Emissão de Despacho/Ofício: ' . $assuntoModel->titulo,
+        ]);
+
+        // 3. Atualizar o estado principal para Concluído (ID 3)
+        $processo->update(['estado_id' => 3]);
+
+        // 4. Preparar dados para o PDF
         $data = [
             'processo'             => $processo,
             'data_atual'           => Carbon::now()->format('d/m/Y'),
-
-            // Dados da Tabela Assuntos
             'assunto_titulo'       => $assuntoModel->titulo,
             'assunto_texto_padrao' => $assuntoModel->texto_padrao,
-
-            // Dados do Formulário (O que o técnico preencheu)
-            'texto_caixa_detalhes' => $request->texto_escrito,   // O Parecer
-            'materiais'            => $request->materiais_texto, // Os Materiais
-
-            'id_aditamento'        => $processo->aditamentos->last()->id ?? 'N/A'
+            'texto_caixa_detalhes' => $request->texto_escrito,
+            'materiais'            => $request->materiais_texto,
+            'id_aditamento'        => $processo->aditamentos->last()->id // Pega o ID do aditamento acabado de criar
         ];
 
-        // 5. Gerar e retornar o PDF
+        // 5. Gerar e devolver o PDF para o browser
         $pdf = Pdf::loadView('pdf.oficio', $data);
-
         return $pdf->stream('Oficio_' . $processo->numero_eamb . '.pdf');
     }
 }

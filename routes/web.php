@@ -19,7 +19,7 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Rotas de Registro (Caso precises)
+// Registro
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
@@ -36,15 +36,17 @@ Route::middleware('auth')->group(function () {
     // 1. Listagem Geral
     Route::get('/processos', [ProcessoController::class, 'index'])->name('processos.index');
 
-    // 2. Rota que estava em falta e causava o erro (oficios.create)
-    // Se a tua sidebar aponta para aqui, ela tem de estar definida.
+    // 2. Atalho para a listagem (usado na sidebar)
     Route::get('/processos/novo-oficio', [ProcessoController::class, 'index'])->name('oficios.create');
 
-    // 3. Detalhe do Processo
+    // 3. Detalhe do Processo (Onde está o formulário e o botão de aditamento)
     Route::get('/processos/{id}', [ProcessoController::class, 'show'])->name('processos.show');
 
-    // 4. Ações (PDF e Aditamento)
-    Route::post('/processos/{id}/pdf', [ProcessoController::class, 'generatePDF'])->name('processos.pdf');
+    // 4. Ações de Processamento
+    // Geração do PDF (Despacho)
+    Route::post('/processos/{id}/gerar-pdf', [ProcessoController::class, 'generatePDF'])->name('processos.pdf');
+
+    // Registo de Novo Aditamento na Base de Dados
     Route::post('/processos/{id}/aditamento', [ProcessoController::class, 'storeAditamento'])->name('aditamentos.store');
 
     // ================= CADASTROS =================
